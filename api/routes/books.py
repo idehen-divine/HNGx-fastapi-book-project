@@ -135,13 +135,64 @@ async def create_book(book: Book):
         )
 
 
-@router.get("/{book_id}", response_model=Book, status_code=status.HTTP_200_OK)
+@router.get("/{book_id}", 
+    response_model=Book, 
+    status_code=status.HTTP_200_OK,
+    summary="Get a specific book",
+    description="Retrieves a book by its ID",
+    responses={
+        200: {
+            "description": "Book found",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": 1,
+                        "title": "The Hobbit",
+                        "author": "J.R.R. Tolkien",
+                        "publication_year": 1937,
+                        "genre": "FANTASY"
+                    }
+                }
+            }
+        },
+        404: {
+            "description": "Book not found",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "Book not found"}
+                }
+            }
+        },
+        422: {
+            "description": "Validation Error",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": [
+                            {
+                                "loc": ["path", "book_id"],
+                                "msg": "value is not a valid integer",
+                                "type": "type_error.integer"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    }
+)
 async def get_book(book_id: int) -> Book:
-    book = db.get_book(book_id)
-    return JSONResponse(
-        status_code=status.HTTP_200_OK,
-        content=book.model_dump()
-    )
+    try:
+        book = db.get_book(book_id)
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content=book.model_dump()
+        )
+    except KeyError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Book not found"
+        )
 
 
 @router.put("/{book_id}", response_model=Book, status_code=status.HTTP_200_OK)
