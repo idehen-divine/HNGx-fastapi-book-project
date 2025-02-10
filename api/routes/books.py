@@ -195,12 +195,64 @@ async def get_book(book_id: int) -> Book:
         )
 
 
-@router.put("/{book_id}", response_model=Book, status_code=status.HTTP_200_OK)
+@router.put("/{book_id}", 
+    response_model=Book, 
+    status_code=status.HTTP_200_OK,
+    summary="Update a book",
+    description="Updates an existing book's details by its ID",
+    responses={
+        200: {
+            "description": "Book updated successfully",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": 1,
+                        "title": "Updated Title",
+                        "author": "Updated Author",
+                        "publication_year": 2024,
+                        "genre": "FICTION"
+                    }
+                }
+            }
+        },
+        404: {
+            "description": "Book not found",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "Book not found"}
+                }
+            }
+        },
+        422: {
+            "description": "Validation Error",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": [
+                            {
+                                "loc": ["body", "publication_year"],
+                                "msg": "value is not a valid integer",
+                                "type": "type_error.integer"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    }
+)
 async def update_book(book_id: int, book: Book) -> Book:
-    return JSONResponse(
-        status_code=status.HTTP_200_OK,
-        content=db.update_book(book_id, book).model_dump(),
-    )
+    try:
+        updated_book = db.update_book(book_id, book)
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content=updated_book.model_dump()
+        )
+    except KeyError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Book not found"
+        )
 
 
 @router.delete("/{book_id}", status_code=status.HTTP_204_NO_CONTENT)
