@@ -1,6 +1,6 @@
 from typing import OrderedDict
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, status, HTTPException
 from fastapi.responses import JSONResponse
 
 from api.db.schemas import Book, Genre, InMemoryDB
@@ -75,12 +75,64 @@ async def get_books() -> OrderedDict[int, Book]:
     return db.get_books()
 
 
-@router.post("/", status_code=status.HTTP_201_CREATED)
+@router.post("/", 
+    response_model=Book,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create a new book",
+    description="Creates a new book in the database with the given details",
+    responses={
+        201: {
+            "description": "Book created successfully",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": 4,
+                        "title": "New Book",
+                        "author": "Author Name",
+                        "publication_year": 2024,
+                        "genre": "FICTION"
+                    }
+                }
+            }
+        },
+        400: {
+            "description": "Invalid book data",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "Invalid book data"}
+                }
+            }
+        },
+        422: {
+            "description": "Validation Error",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": [
+                            {
+                                "loc": ["body", "publication_year"],
+                                "msg": "value is not a valid integer",
+                                "type": "type_error.integer"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    }
+)
 async def create_book(book: Book):
-    db.add_book(book)
-    return JSONResponse(
-        status_code=status.HTTP_201_CREATED, content=book.model_dump()
-    )
+    try:
+        db.add_book(book)
+        return JSONResponse(
+            status_code=status.HTTP_201_CREATED, 
+            content=book.model_dump()
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
 
 
 @router.get("/{book_id}", response_model=Book, status_code=status.HTTP_200_OK)
