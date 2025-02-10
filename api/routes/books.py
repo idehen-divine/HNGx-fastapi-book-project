@@ -33,19 +33,54 @@ db.books = {
 }
 
 
+@router.get("/", 
+    response_model=OrderedDict[int, Book], 
+    status_code=status.HTTP_200_OK,
+    summary="Get all books",
+    description="Retrieves a list of all books in the database",
+    responses={
+        200: {
+            "description": "List of all books",
+            "content": {
+                "application/json": {
+                    "example": {
+                         1: Book(
+                                id=1,
+                                title="The Hobbit",
+                                author="J.R.R. Tolkien",
+                                publication_year=1937,
+                                genre=Genre.SCI_FI,
+                            ),
+                            2: Book(
+                                id=2,
+                                title="The Lord of the Rings",
+                                author="J.R.R. Tolkien",
+                                publication_year=1954,
+                                genre=Genre.FANTASY,
+                            ),
+                            3: Book(
+                                id=3,
+                                title="The Return of the King",
+                                author="J.R.R. Tolkien",
+                                publication_year=1955,
+                                genre=Genre.FANTASY,
+                            ),
+                    }
+                }
+            }
+        }
+    }
+)
+async def get_books() -> OrderedDict[int, Book]:
+    return db.get_books()
+
+
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_book(book: Book):
     db.add_book(book)
     return JSONResponse(
         status_code=status.HTTP_201_CREATED, content=book.model_dump()
     )
-
-
-@router.get(
-    "/", response_model=OrderedDict[int, Book], status_code=status.HTTP_200_OK
-)
-async def get_books() -> OrderedDict[int, Book]:
-    return db.get_books()
 
 
 @router.get("/{book_id}", response_model=Book, status_code=status.HTTP_200_OK)
