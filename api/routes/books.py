@@ -184,6 +184,8 @@ async def create_book(book: Book):
 async def get_book(book_id: int) -> Book:
     try:
         book = db.get_book(book_id)
+        if book is None:
+            raise KeyError("Book not found")
         return JSONResponse(
             status_code=status.HTTP_200_OK,
             content=book.model_dump()
