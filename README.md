@@ -50,8 +50,8 @@ fastapi-book-project/
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/idehen-divine/HNGx-fastapi-book-project.git
-cd HNGx-fastapi-book-project
+git clone https://github.com/idehen-divine/hngx-stage2-fastapi-book-project.git
+cd hngx-stage2-fastapi-book-project
 ```
 
 2. Create a virtual environment:
